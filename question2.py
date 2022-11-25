@@ -3,8 +3,11 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# start timer
+start = time.time()
+
 # start spark with 1 worker thread
-sc = SparkContext("local[1]")
+sc = SparkContext("local[*]")
 sc.setLogLevel("ERROR")
 
 # Question 2____________________________________________________________start
@@ -36,6 +39,11 @@ for elem in scheduling_class_list:
        # filter all elements corresponding with 'elem' value in the list and count them
        count = scheduling_class_RDD.filter(lambda x: x==elem).count()
        print("Percentage of jobs correspond with scheduling class =", elem ,"is", round(count/sum_of_elements * 100 , 2) , "%  " , count)
+
+# end timer
+end = time.time()
+
+print("elapsed time:  " , end-start)
 
 # Question 2______________________________________________________________end
 

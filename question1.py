@@ -3,6 +3,9 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# start timer
+start = time.time()
+
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
@@ -20,6 +23,9 @@ machine_events_RDD = machine_events_RDD.map(lambda x: x.split(','))
 
 # transformation to a new RDD with each line has only the CPU capacity field
 cpu_capacity_RDD = machine_events_RDD.map(lambda x: x[Machine_events_table.CPU_CAPACITY])
+
+# make the RDD persist in memory
+cpu_capacity_RDD.cache()
 
 """ ____need to be checked
 # use distinct() func of Spark to remove duplicated elements
@@ -42,6 +48,10 @@ for elem in cpu_capacity_list:
        # filter all elements corresponding with 'elem' value in the list and count them
        count = cpu_capacity_RDD.filter(lambda x: x==elem).count()
        print("Percentage of machines correspond with CPU capacity =", elem ,"is", round(count/sum_of_machines * 100 , 2) , "%")
+
+# end timer
+end = time.time()
+print("elapsed time:  " , end-start)
 
 # Question 1______________________________________________________________end
 
