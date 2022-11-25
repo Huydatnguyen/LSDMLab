@@ -26,4 +26,7 @@ class Task_events_table:
       USER_NAME=6
       SCHEDULING_CLASS=7
       PRIORITY=8
+      CPU_REQUEST=9
+      MEMORY_REQUEST=10
+      DISK_REQUEST=11
 

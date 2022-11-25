@@ -8,10 +8,10 @@ from definition import *
 start = time.time()
 
 # start spark with 1 worker thread
-sc = SparkContext("local[2]")
+sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
-# Question 3____________________________________________________________start
+# Question 8____________________________________________________________start
 
 # read the input file into an RDD[String]
 task_events_file_0_RDD = sc.textFile("./Task_events/part-00000-of-00500.csv")
@@ -47,6 +47,9 @@ nb_of_jobs_satisfied = 0;
 # variable represents number of jobs containing only 1 task 
 nb_of_jobs_one_task = 0;
 
+# variable represents number of jobs missing resource information 
+nb_of_jobs_missing_info = 0;
+
 # iterator all the elements in the list
 for elem in jobID_list_sample: 
    
@@ -67,24 +70,37 @@ for elem in jobID_list_sample:
 
     # if job contains more than one task
     else:     
-       # list contains machineIDs corresponding to this jobID
-       machineID_list = task_filter_RDD.map(lambda x: x[Task_events_table.MACHINE_ID]).collect()
+       # list contains CPU request values corresponding to this jobID
+       cpuRequest_list = task_filter_RDD.map(lambda x: x[Task_events_table.CPU_REQUEST]).collect()
 
-       # If all tasks run on same machine then all of machineID values in machineID_list must be equal, meaning that the number of times an element occurs in list must be equal to the length of list
-       check_machineID_repeated = machineID_list.count(machineID_list[0]) == len(machineID_list)      
+       # list contains MEMORY request values corresponding to this jobID
+       memRequest_list = task_filter_RDD.map(lambda x: x[Task_events_table.MEMORY_REQUEST]).collect()
 
-       if (check_machineID_repeated):    
-          nb_of_jobs_satisfied += 1
+       # ignore elements missing infor about cpu or memomy request
+       if("" in cpuRequest_list or "" in memRequest_list):
+          nb_of_jobs_missing_info += 1;
+ 
+       else:
+          # If all tasks from a job request the same CPU and MEMORY then all of elements in cpuRequest_list must be equal, meaning that the number of times an element occurs in list must be equal to the length of list
+          check_cpuRequest_repeated = cpuRequest_list.count(cpuRequest_list[0]) == len(cpuRequest_list)   
+   
+          # the same as memRequest_list
+          check_memRequest_repeated = memRequest_list.count(memRequest_list[0]) == len(memRequest_list)    
+
+          # check if jobs satisfiedly contain tasks has the same resources 
+          if (check_cpuRequest_repeated and check_memRequest_repeated):    
+             nb_of_jobs_satisfied += 1
 
 print("nb_of_jobs_with_only_one_task :  " , nb_of_jobs_one_task)   
 print("nb_of_jobs_satisfied :  " , nb_of_jobs_satisfied) 
-print("Percentage of jobs contains tasks running on the same machines: ",  round(nb_of_jobs_satisfied /(nb_of_samples - nb_of_jobs_one_task) * 100 , 2) , "%" )
+print("nb_of_jobs_missing_info :  " , nb_of_jobs_missing_info) 
+print("Percentage of jobs contains tasks having the same resources: ",  round(nb_of_jobs_satisfied /(nb_of_samples - nb_of_jobs_one_task - nb_of_jobs_missing_info) * 100 , 2) , "%" )
 
 # end timer
 end = time.time()
 
 print("elapsed time:  " , end-start)
 
-# Question 3______________________________________________________________end
+# Question 8______________________________________________________________end
 
 input("Press Enter to continnnue...")

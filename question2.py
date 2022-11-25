@@ -7,7 +7,7 @@ from definition import *
 start = time.time()
 
 # start spark with 1 worker thread
-sc = SparkContext("local[*]")
+sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
 # Question 2____________________________________________________________start
