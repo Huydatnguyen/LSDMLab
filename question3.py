@@ -8,19 +8,27 @@ from definition import *
 start = time.time()
 
 # start spark with 1 worker thread
-sc = SparkContext("local[2]")
+sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
 # Question 3____________________________________________________________start
 
-# read the input file into an RDD[String]
-task_events_file_0_RDD = sc.textFile("./Task_events/part-00000-of-00500.csv")
+# number of files in table
+nb_of_files = 2;
+
+# declare an empty RDD for containing data from all files of a table
+task_events_RDD_combined = sc.parallelize([])
+
+# read all of input files into an RDD[String]
+for i in range(nb_of_files):
+   task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
+   task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # transformation to a new RDD with spliting each line into an array of items
-task_events_file_0_RDD = task_events_file_0_RDD.map(lambda x: x.split(','))
+task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
 
 # transformation to a new RDD with each line has only the jobID field
-jobID_RDD = task_events_file_0_RDD.map(lambda x: x[Task_events_table.JOB_ID])
+jobID_RDD = task_events_RDD_combined.map(lambda x: x[Task_events_table.JOB_ID])
 
 # return all of elements of the dataset as a list
 jobID_list_full = jobID_RDD.collect()
@@ -53,7 +61,7 @@ for elem in jobID_list_sample:
     # check if job contains only one task
 
     # filter elements having corresponding jobID
-    task_filter_RDD = task_events_file_0_RDD.filter(lambda x: x[Task_events_table.JOB_ID] == elem)
+    task_filter_RDD = task_events_RDD_combined.filter(lambda x: x[Task_events_table.JOB_ID] == elem)
 
     # list contains task indexs corresponding to this jobID
     task_index_list = task_filter_RDD.map(lambda x: x[Task_events_table.TASK_INDEX]).collect()

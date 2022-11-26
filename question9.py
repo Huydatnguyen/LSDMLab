@@ -34,14 +34,22 @@ sc.setLogLevel("ERROR")
 
 # Question 9____________________________________________________________start
 
-# read the input file into an RDD[String]
-task_events_file_0_RDD = sc.textFile("./Task_events/part-00000-of-00500.csv")
+# number of files in table
+nb_of_files = 2;
+
+# declare an empty RDD for containing data from all files of a table
+task_events_RDD_combined = sc.parallelize([])
+
+# read all of input files into an RDD[String]
+for i in range(nb_of_files):
+   task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
+   task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # transformation to a new RDD with spliting each line into an array of items
-task_events_file_0_RDD = task_events_file_0_RDD.map(lambda x: x.split(','))
+task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
 
 # transformation to a new RDD with each line has only the priority field
-priority_RDD = task_events_file_0_RDD.map(lambda x: x[Task_events_table.PRIORITY])
+priority_RDD = task_events_RDD_combined.map(lambda x: x[Task_events_table.PRIORITY])
 
 # return all of elements of the dataset as a list
 priority_list_full = priority_RDD.collect()
@@ -55,7 +63,7 @@ print("priority_list_distinct: " , priority_list_distinct)
 for elem in priority_list_distinct:
 
     # filter elements having corresponding this priority
-    prior_filter_RDD = task_events_file_0_RDD.filter(lambda x: x[Task_events_table.PRIORITY] == elem)
+    prior_filter_RDD = task_events_RDD_combined.filter(lambda x: x[Task_events_table.PRIORITY] == elem)
 
     # list contains CPU request corresponding to this priority 
     cpu_request_list = prior_filter_RDD.map(convertCpuValueToFloat).collect()

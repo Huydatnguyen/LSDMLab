@@ -1,4 +1,13 @@
+# standardize integer to string for reading the input files  
+def standardizeToStr(number):
+   if number<10:
+      return "00"+str(number)
+   elif number<100:
+      return "0"+str(number)
+   else:
+      return str(number)
 
+# define properties in Machine_events_table
 class Machine_events_table:
       TIME_STAMP=0
       MACHINE_ID=1
@@ -7,7 +16,7 @@ class Machine_events_table:
       CPU_CAPACITY=4
       MEM_CAPACITY=5
 
-
+# define properties in Job_events_table
 class Job_events_table:
       TIME_STAMP=0
       JOB_ID=2
@@ -17,6 +26,7 @@ class Job_events_table:
       JOB_NAME=6
       LOGICAL_JOB_NAME=7
 
+# define properties in Task_events_table
 class Task_events_table:
       TIME_STAMP=0
       JOB_ID=2

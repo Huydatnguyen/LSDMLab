@@ -12,17 +12,25 @@ sc.setLogLevel("ERROR")
 
 # Question 2____________________________________________________________start
 
-# read the input file into an RDD[String]
-task_events_file_0_RDD = sc.textFile("./Task_events/part-00000-of-00500.csv")
+# number of files in table
+nb_of_files = 2;
+
+# declare an empty RDD for containing data from all files of a table
+task_events_RDD_combined = sc.parallelize([])
+
+# read all of input files into an RDD[String]
+for i in range(nb_of_files):
+   task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
+   task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # sum of elements(machines)
-sum_of_elements = task_events_file_0_RDD.count()
+sum_of_elements = task_events_RDD_combined.count()
 
 # transformation to a new RDD with spliting each line into an array of items
-task_events_file_0_RDD = task_events_file_0_RDD.map(lambda x: x.split(','))
+task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
 
 # transformation to a new RDD with each line has only the scheduling class field
-scheduling_class_RDD = task_events_file_0_RDD.map(lambda x: x[Task_events_table.SCHEDULING_CLASS])
+scheduling_class_RDD = task_events_RDD_combined.map(lambda x: x[Task_events_table.SCHEDULING_CLASS])
 
 # return all of elements of the dataset as a list
 scheduling_class_list = scheduling_class_RDD.collect()
@@ -38,7 +46,7 @@ for elem in scheduling_class_list:
     if elem != '':
        # filter all elements corresponding with 'elem' value in the list and count them
        count = scheduling_class_RDD.filter(lambda x: x==elem).count()
-       print("Percentage of tasks correspond with scheduling class =", elem ,"is", round(count/sum_of_elements * 100 , 2) , "%  " , count)
+       print("Percentage of tasks correspond with scheduling class =", elem ,"is", round(count/sum_of_elements * 100 , 2) , "%  " , count,"of",sum_of_elements)
 
 # end timer
 end = time.time()
