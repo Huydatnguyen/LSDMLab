@@ -28,23 +28,6 @@ def convertMemValueToFloat(lst):
    else:
       return "";
 
-
-
-def func(a,b):
-    global temp
-    if a == '' and b == '':
-        return 0
-    elif a == '' and b != '':
-        return float(b)
-    elif b == '' and a != '':
-        return float(a)
-    else:
-        temp += 1
-        print("temp", temp)
-        return float(a) + float(b)
-
-
-
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
@@ -52,9 +35,7 @@ sc.setLogLevel("ERROR")
 # Question 9____________________________________________________________start
 
 # number of files in table
-nb_of_files = 1
-
-temp = 1
+nb_of_files = 2;
 
 # declare an empty RDD for containing data from all files of a table
 task_events_RDD_combined = sc.parallelize([])
@@ -68,13 +49,39 @@ for i in range(nb_of_files):
 task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
 
 # transformation to a new RDD with each line has only the priority field
-priority_RDD = task_events_RDD_combined.map(lambda x: (x[Task_events_table.PRIORITY],x[Task_events_table.CPU_REQUEST]))
+priority_RDD = task_events_RDD_combined.map(lambda x: x[Task_events_table.PRIORITY])
 
-priority_RDD = sc.parallelize([('8', ''), ('8', '1'), ('8', '0.5'),('8', ''), ('8', '0.25'), ('8', '0.5')])
+# return all of elements of the dataset as a list
+priority_list_full = priority_RDD.collect()
 
-reduce_prio_RDD = priority_RDD.reduceByKey(func)
+# remove duplicate 
+priority_list_distinct = list(dict.fromkeys(priority_list_full))
 
-print("reduce: " , reduce_prio_RDD.collect(), "temp: ", temp)
+print("priority_list_distinct: " , priority_list_distinct)
+
+# iterator all the elements in the list
+for elem in priority_list_distinct:
+
+    # filter elements having corresponding this priority
+    prior_filter_RDD = task_events_RDD_combined.filter(lambda x: x[Task_events_table.PRIORITY] == elem)
+
+    # list contains CPU request corresponding to this priority 
+    cpu_request_list = prior_filter_RDD.map(convertCpuValueToFloat).collect()
+
+    # remove elements having missing CPU request infor
+    cpu_request_list = [i for i in cpu_request_list if i != ""]
+
+    # compute the average of CPU request values
+    print("CPU Average corresponds to prior: " , elem ," is ", computeAverage(cpu_request_list))
+
+    # list contains MEMORY request corresponding to this priority 
+    mem_request_list = prior_filter_RDD.map(convertMemValueToFloat).collect()
+  
+    # remove elements having missing CPU request infor
+    mem_request_list = [i for i in mem_request_list if i != ""]
+
+    # compute the average of MEMORY request values
+    print("MEMORY Average corresponds to prior: " , elem ," is ", computeAverage(mem_request_list))
 
 # end timer
 end = time.time()
