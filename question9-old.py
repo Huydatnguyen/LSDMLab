@@ -5,34 +5,34 @@ import time
 from definition import *
 from functools import reduce
 
-# start timer
-start = time.time()
-
 # Finds out the average of elements in the list lst
 def computeAverage(lst):
 	return reduce(lambda a, b: a + b, lst) / len(lst)
 
 # convert string value of CPU request to float
 def convertCpuValueToFloat(lst):
-   # ignore elements having missing infor about CPU request
-   if lst[Task_events_table.CPU_REQUEST] != "" :
-      return float(lst[Task_events_table.CPU_REQUEST])
-   else:
-      return "";
+    # ignore elements having missing infor about CPU request
+    if lst[Task_events_table.CPU_REQUEST] != "" :
+        return float(lst[Task_events_table.CPU_REQUEST])
+    else:
+        return "";
 
 # convert string value of MEMORY request to float
 def convertMemValueToFloat(lst):
-   # ignore elements having missing infor about MEM request
-   if lst[Task_events_table.MEMORY_REQUEST] != "" :
-      return float(lst[Task_events_table.MEMORY_REQUEST])
-   else:
-      return "";
+    # ignore elements having missing infor about MEM request
+    if lst[Task_events_table.MEMORY_REQUEST] != "" :
+        return float(lst[Task_events_table.MEMORY_REQUEST])
+    else:
+        return "";
 
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
 # Question 9____________________________________________________________start
+
+# start timer
+start = time.time()
 
 # number of files in table
 nb_of_files = 2;
@@ -42,8 +42,8 @@ task_events_RDD_combined = sc.parallelize([])
 
 # read all of input files into an RDD[String]
 for i in range(nb_of_files):
-   task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
-   task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
+    task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
+    task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # transformation to a new RDD with spliting each line into an array of items
 task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))

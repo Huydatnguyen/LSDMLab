@@ -14,7 +14,7 @@ sc.setLogLevel("ERROR")
 start = time.time()
 
 # number of files in table
-nb_of_files = 1;
+nb_of_files = 2;
 
 # declare an empty RDD for containing data from all files of a table
 task_events_RDD_combined = sc.parallelize([])

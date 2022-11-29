@@ -5,76 +5,65 @@ import time
 from definition import *
 from functools import reduce
 
-# start timer
-start = time.time()
-
-# Finds out the average of elements in the list lst
-def computeAverage(lst):
-	return reduce(lambda a, b: a + b, lst) / len(lst)
-
-# convert string value of CPU request to float
-def convertCpuValueToFloat(lst):
-   # ignore elements having missing infor about CPU request
-   if lst[Task_events_table.CPU_REQUEST] != "" :
-      return float(lst[Task_events_table.CPU_REQUEST])
-   else:
-      return "";
-
-# convert string value of MEMORY request to float
-def convertMemValueToFloat(lst):
-   # ignore elements having missing infor about MEM request
-   if lst[Task_events_table.MEMORY_REQUEST] != "" :
-      return float(lst[Task_events_table.MEMORY_REQUEST])
-   else:
-      return "";
-
-
-
-def func(a,b):
-    global temp
-    if a == '' and b == '':
-        return 0
-    elif a == '' and b != '':
-        return float(b)
-    elif b == '' and a != '':
-        return float(a)
-    else:
-        temp += 1
-        print("temp", temp)
-        return float(a) + float(b)
-
-
-
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
 # Question 9____________________________________________________________start
 
-# number of files in table
-nb_of_files = 1
+# start timer
+start = time.time()
 
-temp = 1
+# number of files in table
+nb_of_files = 2
 
 # declare an empty RDD for containing data from all files of a table
 task_events_RDD_combined = sc.parallelize([])
 
 # read all of input files into an RDD[String]
 for i in range(nb_of_files):
-   task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
-   task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
+    task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
+    task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # transformation to a new RDD with spliting each line into an array of items
 task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
 
-# transformation to a new RDD with each line has only the priority field
-priority_RDD = task_events_RDD_combined.map(lambda x: (x[Task_events_table.PRIORITY],x[Task_events_table.CPU_REQUEST]))
 
-priority_RDD = sc.parallelize([('8', ''), ('8', '1'), ('8', '0.5'),('8', ''), ('8', '0.25'), ('8', '0.5')])
+# transformation to a new RDD with each line is a pair of the priority and cpu request
+# with removing elements having the empty value of cpu request
+priority_CPU_RDD = task_events_RDD_combined.map(lambda x: (x[Task_events_table.PRIORITY],x[Task_events_table.CPU_REQUEST])).filter(lambda x: x[1] != '')
 
-reduce_prio_RDD = priority_RDD.reduceByKey(func)
+# countByKey() return a hashmap with the count of each key for CPU request
+# after that convert to a dictionary
+dict_CPU_countByPriority = dict(priority_CPU_RDD.countByKey())
 
-print("reduce: " , reduce_prio_RDD.collect(), "temp: ", temp)
+# transformation to a new RDD with merging the values of CPU request for each key using reduce function
+reduce_prio_CPU_RDD = priority_CPU_RDD.reduceByKey(lambda a,b: float(a)+float(b))
+# and return as a dictionary
+dict_priority_CPU = dict(reduce_prio_CPU_RDD.collect())
+
+# iterate each element in dictionary of priority and CPU
+for key in dict_priority_CPU:
+    if key != '':
+        print("CPU Average corresponds to prior: " , key ," is ", round(dict_priority_CPU[key]/dict_CPU_countByPriority[key],5))
+        
+        
+# transformation to a new RDD with each line is a pair of the priority and memory request
+# with removing elements having the empty value of memory request
+priority_memory_RDD = task_events_RDD_combined.map(lambda x: (x[Task_events_table.PRIORITY],x[Task_events_table.MEMORY_REQUEST])).filter(lambda x: x[1] != '')
+                                                                                                                            # countByKey() return a hashmap with the count of each key for MEMORY request
+# after that convert to a dictionary
+dict_memory_countByPriority = dict(priority_memory_RDD.countByKey())
+
+# transformation to a new RDD with merging the values of MEMORY request for each key using reduce function
+reduce_prio_memory_RDD = priority_memory_RDD.reduceByKey(lambda a,b: float(a)+float(b))
+# and return as a dictionary
+dict_priority_memory = dict(reduce_prio_memory_RDD.collect())
+       
+# iterate each element in dictionary of priority and MEMORY
+for key in dict_priority_memory:
+    if key != '':
+        print("MEMORY Average corresponds to prior: " , key ," is ", round(dict_priority_memory[key]/dict_memory_countByPriority[key],5))
 
 # end timer
 end = time.time()
