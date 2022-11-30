@@ -1,0 +1,10 @@
+1- (machine_events) group machines by cpu capacity and count them 
+2- (machine_events) wt is computational power lost? is it the percentage of the time where a machine went offline and reconnected later in relation to the total time of operation of the machine ?
+3- (task_events) group by scheduling class and count jobs, group by job id and count tasks
+4- (task_events) extract evicted tasks, calculate for each scheduling class the number of evicted tasks, then calculate probabilities.
+5- (task_events) group by job ID and check if machine IDs differ or not (count proportion jobs whose tasks are running on different machines)
+6- (task_events) extract tasks that request the more resources, (task_usage) extract tasks that consume the more resources, do intersection.
+ressources?(cpu+mem) 
+7- (task_events) join (task_usage). plot ressource consumption in terms of event type. calculate ressource consumption for each event type (group by event_type and sum usage).
+
+Note that one purpose of these analyses is to illustrate the different functionalities of Spark. Hence, proposing a set of analyses that all require the same sequence of transformation on the data, is of little interest for this lab.
