@@ -12,8 +12,8 @@ sc.setLogLevel("ERROR")
 # start timer
 start = time.time()
 
-# read the input file into an RDD[String]
-machine_events_RDD = sc.textFile("./Machine_events/part-00000-of-00001.csv")
+# read all the input files into an RDD[String]
+machine_events_RDD = sc.textFile("./Machine_events/*")
 
 # sum of elements(machines)
 sum_of_machines = machine_events_RDD.count()

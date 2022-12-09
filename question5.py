@@ -10,19 +10,11 @@ sc.setLogLevel("ERROR")
 
 # Question 5____________________________________________________________start
 
+# load all files from table and return an RDD[String]
+task_events_RDD_combined = sc.textFile("./Task_events/*")
+
 # start timer
 start = time.time()
-
-# number of files in table
-nb_of_files = 2;
-
-# declare an empty RDD for containing data from all files of a table
-task_events_RDD_combined = sc.parallelize([])
-
-# read all of input files into an RDD[String]
-for i in range(nb_of_files):
-    task_events_RDD = sc.textFile("./Task_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
-    task_events_RDD_combined = task_events_RDD_combined.union(task_events_RDD)
 
 # transformation to a new RDD with spliting each line into an array of items
 task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
@@ -41,7 +33,7 @@ dict_jobID_taskID = dict(jobID_taskID_RDD_distinct.countByKey())
 jobID_list_distinct = task_events_RDD_combined.map(lambda x: (x[Task_events_table.JOB_ID])).distinct().collect()
 
 # sampling 
-nb_of_samples = 20
+nb_of_samples = 50
 
 #list contains sampling randomly from list of all jobs
 jobID_list_sampling = random.sample(jobID_list_distinct, nb_of_samples)

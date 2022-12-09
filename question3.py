@@ -3,28 +3,21 @@ from pyspark import SparkContext
 import time
 from definition import *
 
-# start timer
-start = time.time()
-
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
-# Question 3____________________________________________________________start
+# load all files from table and return an RDD[String]
+job_events_RDD_combined = sc.textFile("./Job_events/*")
+task_events_RDD_combined = sc.textFile("./Task_events/*")
 
-# number of files in table
-nb_of_files = 2;
+# start timer
+start = time.time()
 
-# declare an empty RDD for containing data from all files of a table
-job_events_RDD_combined = sc.parallelize([])
+# Question 3 for job events table____________________________________________________________start
 
-# read all of input files into an RDD[String]
-for i in range(nb_of_files):
-   job_events_RDD = sc.textFile("./Job_events/part-00" + standardizeToStr(i) + "-of-00500.csv")
-   job_events_RDD_combined = job_events_RDD_combined.union(job_events_RDD)
-
-# sum of elements(machines)
-sum_of_elements = job_events_RDD_combined.count()
+# sum of jobs
+sum_of_jobs = int(job_events_RDD_combined.count())
 
 # transformation to a new RDD with spliting each line into an array of items
 job_events_RDD_combined = job_events_RDD_combined.map(lambda x: x.split(','))
@@ -42,14 +35,41 @@ dict_scheduling_class = dict(hashmap_scheduling_class)
 for key in dict_scheduling_class:
     # empty key is not valid 
     if key != '':
-        print("Percentage of jobs correspond with scheduling class =", key ,"is", round(dict_scheduling_class[key]/sum_of_elements * 100 , 2) ,
-         "%  " , dict_scheduling_class[key],"of",sum_of_elements)
+        print("Percentage of jobs correspond with scheduling class =", key ,"is", 
+round(dict_scheduling_class[key]/sum_of_jobs * 100 , 2) ,
+         "%  " , dict_scheduling_class[key],"of",sum_of_jobs)
+
+# Question 3 for job events table______________________________________________________________end
+  
+# Question 3 for task events table____________________________________________________________start
+
+# sum of tasks
+sum_of_tasks = int(task_events_RDD_combined.count())
+
+# transformation to a new RDD with spliting each line into an array of items
+task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
+
+# transformation to a new RDD with each line contains a <the scheduling_class,1> pair
+scheduling_class_RDD = task_events_RDD_combined.map(lambda x: (x[Task_events_table.SCHEDULING_CLASS],1))
+
+# transformation to a new RDD with merging the values for each key using reduce function
+reduce_scheduling_class_RDD  = scheduling_class_RDD.reduceByKey(lambda x,y: x+y)
+
+# return as a dictionary
+dict_scheduling_class = dict(reduce_scheduling_class_RDD.collect())
+
+# iterate each element in dictionary
+for key in dict_scheduling_class:
+    # empty key is not valid 
+    if key != '':
+        print("Percentage of tasks correspond with scheduling class =", key ,"is", round(dict_scheduling_class[key]/sum_of_tasks * 100 , 2) ,
+         "%  " , dict_scheduling_class[key],"of",sum_of_tasks)
 
 # end timer
 end = time.time()
 
 print("elapsed time:  " , end-start)
 
-# Question 3______________________________________________________________end
+# Question 3 for task events table______________________________________________________________end    
 
 input("Press Enter to continnnue...")
