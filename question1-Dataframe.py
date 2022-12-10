@@ -7,7 +7,7 @@ import time
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
-# Question 1 solution 1____________________________________________________________start
+# Question 1 Dataframe Spark____________________________________________________________start
 
 # start timer
 start = time.time()
@@ -28,6 +28,6 @@ df.groupBy("cpu").count().show(truncate=False)
 end = time.time()
 print("elapsed time:  " , end-start)
 
-# Question 1 solution1______________________________________________________________end
+# Question 1 Dataframe Spark______________________________________________________________end
 
 input("Press Enter to continnnue...")
