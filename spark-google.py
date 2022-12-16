@@ -42,14 +42,14 @@ def main():
 			#Note: We tried to use foreach(do substruction) but we always get None
 
 			# Calculate total CPU power loss for all machines and then sum to get the total CPU power loss on the cluster
-			cpu_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[4]))).groupByKey().map(lambda m: (m[0],list(m[1])[0]))
-			cpu_losses=disconnection_time.join(cpu_capacities).distinct().map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
+			cpu_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[4]))).groupByKey().map(lambda m: (m[0],max(list(m[1]))))
+			cpu_losses=disconnection_time.join(cpu_capacities).map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
 			#print('CPU losses on different machines due to maintenance are:',cpu_losses)
 			print('Total CPU loss on the Google cluster due to maintenance is:',sum(cpu_losses))
 
 			# Calculate total memory power loss for all machines and then sum to get the total memory power loss on the cluster
-			memory_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[5]))).groupByKey().map(lambda m: (m[0],list(m[1])[0]))
-			memory_losses=disconnection_time.join(memory_capacities).distinct().map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
+			memory_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[5]))).groupByKey().map(lambda m: (m[0],max(list(m[1]))))
+			memory_losses=disconnection_time.join(memory_capacities).map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
 			#print('Memory losses on different machines due to maintenance are:',memory_losses)
 			print('Total memory loss on the Google cluster due to maintenance is:',sum(memory_losses))
 			
@@ -166,19 +166,18 @@ def main():
 			task_events.cache()
 
 			## a) CPU consumption
-			filtered=resource_usage.filter(lambda t: t[5]!='' and t[6]!='')
-			tasks_cpu_usage=filtered.map(lambda t: (t[2]+t[3],float(t[5]))) #get cpu usage for all tasks
-			tasks_mem_usage=filtered.map(lambda t: (t[2]+t[3],float(t[6]))) #get memory usage for all tasks
-			tasks_ldisk_usage=filtered.map(lambda t: (t[2]+t[3],float(t[12]))) #get local disk usage for all tasks
+			filtered=resource_usage.filter(lambda t: t[5]!='' and t[6]!='' and t[12]!='')
+			tasks_cpu_usage=filtered.map(lambda t: (t[2]+t[3],float(t[5]))).reduceByKey(max) #get max cpu usage for all tasks
+			tasks_mem_usage=filtered.map(lambda t: (t[2]+t[3],float(t[6]))).reduceByKey(max) #get max memory usage for all tasks
+			tasks_ldisk_usage=filtered.map(lambda t: (t[2]+t[3],float(t[12]))).reduceByKey(max) #get max local disk usage for all tasks
 			
-			filtered=task_events.filter(lambda t: t[4]!='' and t[9]!='' and t[10]!='' and t[11]!='') # clean our data 
-			tasks=filtered.map(lambda t: (t[2]+t[3],(t[4],t[5])))
-			tasks_max_cpu=tasks.join(tasks_cpu_usage).map(lambda t: (t[0],t[1][1])).reduceByKey(max) # get (taskID, max cpu usage)
-			machines=tasks_max_cpu.join(tasks).map(lambda t: (t[1][1][0],t[1][0])) # get(machine ID, max task cpu usage)
-			total_cpu_usg_per_machine=machines.reduceByKey(lambda a, b: a + b)# get (machine ID, total cpu usage))
+			filtered=task_events.filter(lambda t: t[4]!='' and t[9]!='' and t[10]!='' and t[11]!='') # clean our data by removing tasks that have missing values for Machine ID, CPU/RAM/local disk requests
+			tasks=filtered.map(lambda t: (t[2]+t[3],(t[4],t[5]))) # get (taskID,(machine ID, event type))
+			machines=tasks_cpu_usage.join(tasks).map(lambda t: (t[1][1][0],t[1][0])) # get(machine ID, task max cpu usage)
+			total_cpu_usg_per_machine=machines.reduceByKey(lambda a, b: a + b)# get (machine ID, max total cpu usage))
 			events=tasks.map(lambda t: (t[1][0],t[1][1])) #get (machine ID, event type)
 
-			joined_rdd=events.join(total_cpu_usg_per_machine).map(lambda t: (t[1][0],t[1][1])).reduceByKey(max).sortByKey().collect()# get (event type, total cpu usage)
+			joined_rdd=events.join(total_cpu_usg_per_machine).map(lambda t: (t[1][0],t[1][1])).reduceByKey(max).sortByKey().collect()# get (event type, max total cpu usage)
 			plt.plot(*zip(*joined_rdd))
 			plt.title('Max CPU consumption in terms of events types')
 			plt.xlabel('event types')
@@ -186,11 +185,11 @@ def main():
 			plt.show()
 
 			## b) Memory consumption
-			tasks_max_mem=tasks.join(tasks_mem_usage).map(lambda t: (t[0],t[1][1])).reduceByKey(max) # get (taskID, max memory usage)
+			tasks_max_mem=tasks.join(tasks_mem_usage).map(lambda t: (t[0],t[1][1]))# get (taskID, max memory usage)
 			machines=tasks_max_mem.join(tasks).map(lambda t: (t[1][1][0],t[1][0])) # get(machine ID, max task mem usage)
-			total_mem_usg_per_machine=machines.reduceByKey(lambda a, b: a + b)# get (machine ID, total memory usage))
+			total_mem_usg_per_machine=machines.reduceByKey(lambda a, b: a + b)# get (machine ID, total max memory usage))
 
-			joined_rdd=events.join(total_mem_usg_per_machine).map(lambda t: (t[1][0],t[1][1])).reduceByKey(max).sortByKey().collect()# get (event type, total memory usage)
+			joined_rdd=events.join(total_mem_usg_per_machine).map(lambda t: (t[1][0],t[1][1])).reduceByKey(max).sortByKey().collect()# get (event type, total max memory usage)
 			plt.plot(*zip(*joined_rdd))
 			plt.title('Max Memory consumption in terms of events types')
 			plt.xlabel('event types')
@@ -198,7 +197,7 @@ def main():
 			plt.show()
 
 			## c) Local disk
-			tasks_max_disk=tasks.join(tasks_ldisk_usage).map(lambda t: (t[0],t[1][1])).reduceByKey(max) # get (taskID, max local disk usage)
+			tasks_max_disk=tasks.join(tasks_ldisk_usage).map(lambda t: (t[0],t[1][1]))# get (taskID, max local disk usage)
 			machines=tasks_max_disk.join(tasks).map(lambda t: (t[1][1][0],t[1][0])) # get(machine ID, max task local disk usage)
 			total_ld_usg_per_machine=machines.reduceByKey(lambda a, b: a + b)# get (machine ID, total local disk usage))
 
