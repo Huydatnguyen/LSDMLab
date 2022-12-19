@@ -17,9 +17,12 @@ spark = SparkSession.builder.appName('SparkByExamples.com').getOrCreate()
 # read all the input files into an Dataframe
 df = spark.read.csv("./Machine_events/*")
 
-# rename the Dataframe
+# rename the Dataframe columns
 newColumns = ["timeStamp","machineID","eventType","platformID","cpu","memory"]
 df = df.toDF(*newColumns)
+
+# sum of machines
+sum_of_machines = df.count()
 
 # collect the identical data into groups and count them and show the result
 df.groupBy("cpu").count().show(truncate=False)
