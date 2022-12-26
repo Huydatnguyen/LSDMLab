@@ -3,14 +3,14 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# start timer
+start = time.time()
+
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
 # Question 1 solution 2____________________________________________________________start
-
-# start timer
-start = time.time()
 
 # read all the input files into an RDD[String]
 machine_events_RDD = sc.textFile("./Machine_events/*")

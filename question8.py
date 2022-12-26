@@ -4,6 +4,9 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# start timer
+start = time.time()
+
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
@@ -12,9 +15,6 @@ sc.setLogLevel("ERROR")
 
 # load all files from table and return an RDD[String]
 task_events_RDD_combined = sc.textFile("./Task_events/*")
-
-# start timer
-start = time.time()
 
 # transformation to a new RDD with spliting each line into an array of items
 task_events_RDD_combined = task_events_RDD_combined.map(lambda x: x.split(','))
