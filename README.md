@@ -27,3 +27,5 @@ The solution is compared from different points of view (performance, ease of use
 • Compare with Spark Dataframe.
 
 • Compare the use of Spark to the use of a non-parallel Python data analysis library such us Pandas.
+### 2.2 Deploying in the cloud
+Our Spark application is deployed in a real distributed environment (GCP Dataproc cluster) to conduct some performance evaluation in this context.
