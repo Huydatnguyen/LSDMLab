@@ -1,6 +1,9 @@
 # LSDMLab
 Process large amount of data and to implement complex data analyses using Spark. The dataset has been made available by Google. It includes data about a cluster of 12500 machines, and the activity on this cluster during 29 days.
-## 1. Tasks
+
+To start the Spark application, please run the script run-app.sh.
+
+## 1. Lab tasks
 The following questions are answered in this lab:
 
 • What is the distribution of the machines according to their CPU capacity?
