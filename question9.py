@@ -7,22 +7,15 @@ def main():
     printed=False
     # 9. What are hardware specifications of machines on which different priority tasks have/haven't successfully run?
     # read the input files into an RDD[String]
-    task_events = sc.parallelize([])
-    files=os.listdir("task_events/")
-    for file in files:
-        task_events_rdd = sc.textFile("task_events/"+file)
-        task_events = task_events.union(task_events_rdd)
+    task_events = sc.textFile("./Task_events/*")
+
     # split each line into an array of items
     task_events = task_events.map(lambda x : x.split(','))
     # keep the RDD in memory
     task_events.cache()
 
     # create machine attributes RDD
-    machine_attributes = sc.parallelize([])
-    files=os.listdir("machine_attributes/")
-    for file in files:
-        machine_att_rdd = sc.textFile("machine_attributes/"+file)
-        machine_attributes = machine_attributes.union(machine_att_rdd)
+    machine_attributes = sc.textFile("./Machine_attributes/*")
     machine_attributes = machine_attributes.map(lambda x : x.split(','))
     machine_attributes = machine_attributes.map(lambda m: (m[1],(m[2],m[3])))
     machine_attributes.cache()

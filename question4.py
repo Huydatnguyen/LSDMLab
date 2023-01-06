@@ -8,11 +8,7 @@ def main():
     
     # 4. Do tasks with a low scheduling class have a higher probability of being evicted?
     # read the input files into an RDD[String]
-    task_events = sc.parallelize([])
-    files=os.listdir("task_events/")
-    for file in files:
-        task_events_rdd = sc.textFile("task_events/"+file)
-        task_events = task_events.union(task_events_rdd)
+    task_events = sc.textFile("./Task_events/*")
 
     # split each line into an array of items
     task_events = task_events.map(lambda x : x.split(','))

@@ -13,7 +13,7 @@ def main():
     
     # 2. What is the percentage of computational power lost due to maintenance (a machine went offline and reconnected later)?
     # read the input file into an RDD[String], there is only one file in the dataset
-    machine_events = sc.textFile("machine_events/part-00000-of-00001.csv")
+    machine_events = sc.textFile("./Machine_events/*")
 
     # split each line into an array of items
     machine_events = machine_events.map(lambda x : x.split(','))

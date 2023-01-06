@@ -8,11 +8,7 @@ def main():
     
     # 7. Can we observe correlations between peaks of high resource consumption on some machines and task eviction events?		
     # read the input files into an RDD[String]
-    resource_usage = sc.parallelize([])
-    files=os.listdir("resource_usage/")
-    for file in files:
-        rsc_usage_rdd = sc.textFile("resource_usage/"+file)
-        resource_usage = resource_usage.union(rsc_usage_rdd)
+    resource_usage = sc.textFile("./Resource_usage/*")
     # split each line into an array of items
     resource_usage = resource_usage.map(lambda x : x.split(','))
     # keep the RDD in memory
