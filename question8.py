@@ -4,14 +4,14 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# Question 8____________________________________________________________start
+
 # start timer
 start = time.time()
 
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
-
-# Question 8____________________________________________________________start
 
 # load all files from table and return an RDD[String]
 task_events_RDD_combined = sc.textFile("./Task_events/*")

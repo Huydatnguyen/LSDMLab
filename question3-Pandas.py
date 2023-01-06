@@ -9,8 +9,8 @@ import glob
 start = time.time()
 
 # getting csv files from the folder 
-job_path = "E:\Master2_Semester1\LargeScaleDataManagement\LabGraded\Resource\Job_events"
-task_path = "E:\Master2_Semester1\LargeScaleDataManagement\LabGraded\Resource\Task_events"
+job_path = ".\Job_events"
+task_path = ".\Task_events"
 
 # refer to the path containing all the files in job/task events table with extension .csv
 job_files = glob.glob(job_path + "\*.csv")
@@ -23,10 +23,6 @@ job_df = pd.concat((pd.read_csv(f, names=["timeStamp","missingInfo","jobID","eve
 # read all the files in task events table with specific necessary columns
 task_df = pd.concat((pd.read_csv(f, names=["timeStamp","missingInfo","jobID","taskIndex","machineID","eventType"
 ,"userName","schedulingClass","priority","cpuRequest","ramRequest","diskRequest","constraint"] , usecols=["jobID","taskIndex","schedulingClass"]) for f in task_files), axis = 0, ignore_index=True)
-
-# compute sum of jobs/tasks
-print ("job size: " , job_df.count(), "  " , job_df.info(verbose=False))
-print ("task size: " , task_df.count(), "  " , task_df.info(verbose=False))
 
 # collect the identical data about scheduling Class into groups and count them 
 job_result = job_df.groupby(['schedulingClass']).count()

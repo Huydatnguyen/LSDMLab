@@ -3,6 +3,8 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 import time
 
+# Question 3 Dataframe Spark____________________________________________________________start
+
 # start timer
 start = time.time()
 
@@ -10,8 +12,7 @@ start = time.time()
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
 
-# Question 3 Dataframe Spark____________________________________________________________start
-
+# init spark application
 spark = SparkSession.builder.appName('SparkByExamples.com').getOrCreate()
 
 # read all the input files into an Dataframe
