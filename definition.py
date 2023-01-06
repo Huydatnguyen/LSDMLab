@@ -1,12 +1,3 @@
-# standardize integer to string for reading the input files  
-def standardizeToStr(number):
-   if number<10:
-      return "00"+str(number)
-   elif number<100:
-      return "0"+str(number)
-   else:
-      return str(number)
-
 # define properties in Machine_events_table
 class Machine_events_table:
       TIME_STAMP=0

@@ -4,6 +4,8 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# Question 5____________________________________________________________start
+
 # get input from keyboard
 inputVal = input("Please enter the number of samples, or press ENTER to quit: ")
 if inputVal!="" :
@@ -15,8 +17,6 @@ if inputVal!="" :
     # start spark with 1 worker thread
     sc = SparkContext("local[1]")
     sc.setLogLevel("ERROR")
-
-    # Question 5____________________________________________________________start
 
     # load all files from table and return an RDD[String]
     task_events_RDD_combined = sc.textFile("./Task_events/*")

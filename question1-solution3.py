@@ -3,14 +3,14 @@ from pyspark import SparkContext
 import time
 from definition import *
 
+# Question 1 solution 3____________________________________________________________start
+
 # start timer
 start = time.time()
 
 # start spark with 1 worker thread
 sc = SparkContext("local[1]")
 sc.setLogLevel("ERROR")
-
-# Question 1 solution 3____________________________________________________________start
 
 # read all the input files into an RDD[String]
 machine_events_RDD = sc.textFile("./Machine_events/*")
@@ -35,7 +35,6 @@ for key in dict_cpu_capacity:
     # empty key is not valid 
     if key != '':
         print("Percentage of machines correspond with CPU capacity =", key ,"is", round(dict_cpu_capacity[key]/sum_of_machines * 100 , 2) , "%")
-
 
 # end timer
 end = time.time()
