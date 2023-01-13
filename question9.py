@@ -6,7 +6,7 @@ def main():
     sc.setLogLevel("ERROR")
     printed=False
     # 9. What are hardware specifications of machines on which different priority tasks have/haven't successfully run?
-    # read the input files into an RDD[String]
+    # read the input files into an RDD[String], 3 files of Task_events table were used. 
     task_events = sc.textFile("./Task_events/*")
 
     # split each line into an array of items
@@ -14,7 +14,7 @@ def main():
     # keep the RDD in memory
     task_events.cache()
 
-    # create machine attributes RDD
+    # create machine attributes RDD, 1 file of Machine_attributes table was used. 
     machine_attributes = sc.textFile("./Machine_attributes/*")
     machine_attributes = machine_attributes.map(lambda x : x.split(','))
     machine_attributes = machine_attributes.map(lambda m: (m[1],(m[2],m[3])))

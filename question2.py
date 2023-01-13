@@ -32,16 +32,43 @@ def main():
     #Note: We tried to use foreach(do substruction) but we always get None
 
     # Calculate total CPU power loss for all machines and then sum to get the total CPU power loss on the cluster
-    cpu_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[4]))).groupByKey().map(lambda m: (m[0],max(list(m[1]))))
+    cpu_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[4]))).reduceByKey(max)
     cpu_losses=disconnection_time.join(cpu_capacities).map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
     #print('CPU losses on different machines due to maintenance are:',cpu_losses)
-    print('Total CPU loss on the Google cluster due to maintenance is:',sum(cpu_losses))
+    #In order to calculate the percentage of the cpu loss, we need to calculate the cpu power of the whole cluster which is equal to sum of cpu_capacity_machine_i*connection_period
+    #For a simplification reason, we assume that the connection period of a machine is the time difference between the first timestamp of an event which is different from REMOVE
+    #the last timestamp in the dataset.
+    
+    #Get first connection/update timestamp for all machines
+    first_connected_occurence=machine_events.filter(lambda m: m[2]!='1').map(lambda m: (m[1],int(m[0]))).reduceByKey(min) #(machine_ID, oldest connected appearance in the cluster)
+    #Get last timestamp for all machines
+    last_occurence=machine_events.map(lambda m: (m[1],int(m[0]))).reduceByKey(max)#(machine_ID, latest appearance in the cluster)
+    total_connection_periods=last_occurence.union(first_connected_occurence).distinct().reduceByKey(lambda a,b:a-b)
+    #print(total_connection_periods)
+    
+    #By visually examining the print results, we found out that there are a lot of machines that their last occurence time was at timestamp 0
+    #which means that these machines didn't go off during the whole tracing process.
+    #We assign to these machines the latest recorded timestamp in the dataset used
+    latest_tmp=max(last_occurence.values().collect())
+    all_time_connected_machines=total_connection_periods.filter(lambda machine:machine[1]==0).map(lambda m:(m[0],latest_tmp))
+    #print(all_time_connected_machines)
+    total_connection_periods=total_connection_periods.filter(lambda machine:machine[1]==0).union(all_time_connected_machines) #(machine_ID, connection period in the cluster)
+    
+    cluster_total_cpu=machine_events.filter(lambda m: m[4]!='').map(lambda m: (m[1],float(m[4]))).reduceByKey(max)
+    cluster_total_cpu_power=total_connection_periods.join(cluster_total_cpu).map(lambda m:m[1][0]*m[1][1]).collect()
+    
+    print('Total CPU loss percentage on the Google cluster due to maintenance is:',sum(cpu_losses)/sum(cluster_total_cpu_power))
 
     # Calculate total memory power loss for all machines and then sum to get the total memory power loss on the cluster
-    memory_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[5]))).groupByKey().map(lambda m: (m[0],max(list(m[1]))))
+    memory_capacities= machine_events.filter(lambda m: int(m[1]) in rec_IDs and m[4]!='' and m[5]!='').map(lambda m: (m[1],float(m[5]))).reduceByKey(max)
     memory_losses=disconnection_time.join(memory_capacities).map(lambda c: sum([c[1][1]*x for x in c[1][0]])).collect()
     #print('Memory losses on different machines due to maintenance are:',memory_losses)
-    print('Total memory loss on the Google cluster due to maintenance is:',sum(memory_losses))
+
+    # We do the same as cpu resource
+    cluster_total_memory=machine_events.filter(lambda m: m[5]!='').map(lambda m: (m[1],float(m[5]))).reduceByKey(max)
+    cluster_total_memory_power=total_connection_periods.join(cluster_total_memory).map(lambda m:m[1][0]*m[1][1]).collect()
+
+    print('Total memory loss percentage on the Google cluster due to maintenance is:',sum(memory_losses)/sum(cluster_total_memory_power))
     
     X_axis = np.arange(99)
 

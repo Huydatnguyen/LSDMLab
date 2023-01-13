@@ -7,19 +7,15 @@ def main():
     sc.setLogLevel("ERROR")
     
     # 7. Can we observe correlations between peaks of high resource consumption on some machines and task eviction events?		
-    # read the input files into an RDD[String]
+    # read the input files into an RDD[String], 3 files of Task_events table were used. 
     resource_usage = sc.textFile("./Resource_usage/*")
     # split each line into an array of items
     resource_usage = resource_usage.map(lambda x : x.split(','))
     # keep the RDD in memory
     resource_usage.cache()
 
-    # read the input files into an RDD[String]
-    task_events = sc.parallelize([])
-    files=os.listdir("task_events/")
-    for file in files:
-        task_events_rdd = sc.textFile("task_events/"+file)
-        task_events = task_events.union(task_events_rdd)
+    # read the input files into an RDD[String], 3 files of Task_events table were used. 
+    task_events = task_events = sc.textFile("./Task_events/*")
     # split each line into an array of items
     task_events = task_events.map(lambda x : x.split(','))
     # keep the RDD in memory

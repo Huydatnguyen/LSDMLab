@@ -6,7 +6,7 @@ def main():
     sc.setLogLevel("ERROR")
 
     # 6. Are the tasks that request the more resources the ones that consume the more resources?
-    # read the input files into an RDD[String]
+    # read the input files into an RDD[String], 3 files of Task_events table were used. 
     task_events = sc.textFile("./Task_events/*")
 
     # split each line into an array of items
@@ -21,14 +21,8 @@ def main():
     tasks_big=tasks_big.map(lambda t: (t[2]+t[3],1)).distinct()
     # print('requests: ',tasks_big)
 
-    # read the input files into an RDD[String]
-    resource_usage = sc.parallelize([])
-    files=os.listdir("resource_usage/")
-    for file in files:
-        rsc_usage_rdd = sc.textFile("resource_usage/"+file)
-        resource_usage = resource_usage.union(rsc_usage_rdd)
-    # split each line into an array of items
-    resource_usage = resource_usage.map(lambda x : x.split(','))
+    # read the input files into an RDD[String], 3 files of Resource_usage table were used. 
+    resource_usage = sc.textFile("./Resource_usage/*")
 
     # keep the RDD in memory
     resource_usage.cache()

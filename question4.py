@@ -7,7 +7,7 @@ def main():
     sc.setLogLevel("ERROR")
     
     # 4. Do tasks with a low scheduling class have a higher probability of being evicted?
-    # read the input files into an RDD[String]
+    # read the input files into an RDD[String], 3 files of Task_events table were used. 
     task_events = sc.textFile("./Task_events/*")
 
     # split each line into an array of items
