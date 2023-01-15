@@ -32,3 +32,8 @@ The solution is compared from different points of view (performance, ease of use
 • Compare the use of Spark to the use of a non-parallel Python data analysis library such us Pandas.
 ### 2.2 Deploying in the cloud
 Our Spark application is deployed in a real distributed environment (GCP Dataproc cluster) to conduct some performance evaluation in this context.
+## 3. Instructions for running the code
+- Ensures Spark is installed and configured properly.
+- Ensures the working directory contains well-named folders (Job_events, Machine_events, Task_events, Task_usage) including the number of input files (only .csv files accepted).
+- run script run-app.sh and enter the question to start the execution.
+
