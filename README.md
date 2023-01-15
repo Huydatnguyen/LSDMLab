@@ -1,8 +1,6 @@
 # LSDMLab
 Process large amount of data and to implement complex data analyses using Spark. The dataset has been made available by Google. It includes data about a cluster of 12500 machines, and the activity on this cluster during 29 days.
 
-To start the Spark application, please run the script run-app.sh.
-
 ## 1. Lab tasks
 The following questions are answered in this lab:
 
@@ -34,6 +32,6 @@ The solution is compared from different points of view (performance, ease of use
 Our Spark application is deployed in a real distributed environment (GCP Dataproc cluster) to conduct some performance evaluation in this context.
 ## 3. Instructions for running the code
 - Ensures Spark is installed and configured properly.
-- Ensures the working directory contains well-named folders (Job_events, Machine_events, Task_events, Task_usage) including the number of input files (only .csv files accepted).
-- run script run-app.sh and enter the question to start the execution.
+- Ensures the working directory contains well-named folders (Job_events, Machine_events, Task_events, Task_usage) including csv files.
+- Run script run-app.sh and enter the question to start the execution.
 
